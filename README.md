@@ -1,4 +1,4 @@
-Experience Bingo with a twist! used ReactJS to build the game ,game picks random numbers from 1 to 99. Get a full row or column to win. We score your win by multiplying the unmarked numbers' sum by the winning number. It's Bingo, but smarter! Play now!
+Experience Bingo with a twist for  three players! used ReactJS to build the game ,game picks random numbers from 1 to 99. Get a full row or column to win. We score your win by multiplying the unmarked numbers' sum by the winning number. It's Bingo, but smarter! Play now!
 
 
 

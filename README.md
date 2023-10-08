@@ -1,3 +1,9 @@
+Experience Bingo with a twist! used ReactJS to build the game ,game picks random numbers from 1 to 99. Get a full row or column to win. We score your win by multiplying the unmarked numbers' sum by the winning number. It's Bingo, but smarter! Play now!
+
+
+
+
+
 ![bingo-game-start](https://github.com/aika-kreedy/Bingo-Game-Reactjs/assets/65895863/52c4649d-9108-4762-b445-3e10dc8b3590)
 
 ![bingo-game-playing](https://github.com/aika-kreedy/Bingo-Game-Reactjs/assets/65895863/12159e75-6c9e-4d14-a0cd-7369f13ca1c7)

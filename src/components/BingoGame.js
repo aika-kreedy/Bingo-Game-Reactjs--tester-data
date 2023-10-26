@@ -1,163 +1,114 @@
 import React, { useState, useEffect } from 'react';
 import BingoBoard from './BingoBoard';
 
-const generateRandomNumber = () => Math.floor(Math.random() * 99) + 1;
+const playerBoardsData = [
+  [
+    [22, 13, 17, 11, 0],
+    [8, 2, 23, 4, 24],
+    [21, 9, 14, 16, 7],
+    [6, 10, 3, 18, 5],
+    [1, 12, 20, 15, 19]
+  ],
+  [
+    [3, 15, 0, 2, 22],
+    [9, 18, 13, 17, 5],
+    [19, 8, 7, 25, 23],
+    [20, 11, 10, 24, 4],
+    [14, 21, 16, 12, 6]
+  ],
+  [
+    [14, 21, 17, 24, 4],
+    [10, 16, 15, 9, 19],
+    [18, 8, 23, 26, 20],
+    [22, 11, 13, 6, 5],
+    [2, 0, 12, 3, 7]
+  ]
+];
 
-const generateRandomBoard = () => {
-  const board = [];
-  const usedNumbers = new Set();
 
-  while (board.length < 5) {
-    const row = [];
-    while (row.length < 5) {
-      let number;
-      do {
-        number = generateRandomNumber();
-      } while (usedNumbers.has(number));
-      usedNumbers.add(number);
-      row.push({ number, color: 'black' });
-    }
-    board.push(row);
-  }
-
-  return board;
-};
-const calculateBoardScore = (board, calledNumber) => {
-    let unmarkedNumbersSum = 0;
-  
-    // Loop through the board and sum the unmarked numbers
-    for (let row = 0; row < board.length; row++) {
-      for (let col = 0; col < board[row].length; col++) {
-        if (board[row][col].color !== 'red') {
-          unmarkedNumbersSum += board[row][col].number;
-        }
-      }
-    }
-  
-    // Calculate the score
-    const score = unmarkedNumbersSum * calledNumber;
-    return score;
-  };
-  
+const initialDrawNumbers = [7, 4, 9, 5, 11, 17, 23, 2, 0, 14, 21, 24, 10, 16, 13, 6, 15, 25, 12, 22, 18, 20, 8, 19, 3, 26, 1];
 
 const BingoGame = () => {
-  const [player1Board, setPlayer1Board] = useState([]);
-  const [player2Board, setPlayer2Board] = useState([]);
-  const [player3Board, setPlayer3Board] = useState([]);
-  const [selectedNumber, setSelectedNumber] = useState(null);
+  const [selectedNumbers, setSelectedNumbers] = useState([]);
+  const [drawNumbers, setDrawNumbers] = useState([...initialDrawNumbers]);
   const [winner, setWinner] = useState(null);
-  const [score, setScore] = useState(null);
-  const [gameStarted, setGameStarted] = useState(false);
-  const [gameOver, setGameOver] = useState(false);
-
-  useEffect(() => {
-    if (gameStarted) {
-      setPlayer1Board(generateRandomBoard());
-      setPlayer2Board(generateRandomBoard());
-      setPlayer3Board(generateRandomBoard());
-      setGameStarted(true);
-    }
-  }, [gameStarted]);
+  const [gameOver, setGameOver] = useState(false); // Flag to track game over
 
   useEffect(() => {
     const interval = setInterval(() => {
-      if ( gameStarted && !gameOver) {
-        const newNumber = generateRandomNumber();
-        setSelectedNumber(newNumber);
+      if (drawNumbers.length > 0 && !gameOver) {
+        const newNumber = drawNumbers[0];
 
-        const markNumberOnBoards = (boardState, newNum) => {
-          return boardState.map((row) =>
-            row.map((cell) =>
-              cell.number === newNum ? { ...cell, color: 'red' } : cell
-            )
-          );
-        };
+        setSelectedNumbers(prevNumbers => [...prevNumbers, newNumber]);
 
-        if (player1Board.length > 0 && player1Board.flat().some((cell) => cell.number === newNumber)) {
-          setPlayer1Board((prevBoard) =>
-            markNumberOnBoards(prevBoard, newNumber)
-          );
+        // Remove the used number from drawNumbers
+        setDrawNumbers(prevDrawNumbers => prevDrawNumbers.slice(1));
+
+        const winningPlayer = checkWinner(playerBoardsData, selectedNumbers);
+        if (winningPlayer !== null) {
+          setGameOver(true); // Set the game over flag
+          const score = calculateScore(playerBoardsData[winningPlayer - 1], newNumber);
+          setWinner(`Player ${winningPlayer} wins with a score of ${score}! Game Over`);
         }
 
-        if (player2Board.length > 0 && player2Board.flat().some((cell) => cell.number === newNumber)) {
-          setPlayer2Board((prevBoard) =>
-            markNumberOnBoards(prevBoard, newNumber)
-          );
+        if (drawNumbers.length === 0 && !gameOver) {
+          setGameOver(true); // Set the game over flag
+          setWinner('No winner. All numbers have been drawn. Game Over');
         }
-
-        if (player3Board.length > 0 && player3Board.flat().some((cell) => cell.number === newNumber)) {
-          setPlayer3Board((prevBoard) =>
-            markNumberOnBoards(prevBoard, newNumber)
-          );
-        }
+      } else {
+        clearInterval(interval);
       }
     }, 3000);
 
     return () => clearInterval(interval);
-  }, [player1Board, player2Board, player3Board, gameOver]);
+  }, [drawNumbers, selectedNumbers, winner, gameOver]);
 
-  useEffect(() => {
-    const checkWinner = (board) => {
-      if (!board || board.length === 0) {
-        return false;
-      }
-
+  const checkWinner = (boards, numbers) => {
+    for (let i = 0; i < boards.length; i++) {
+      const playerBoard = boards[i];
+      // Check rows
       for (let row = 0; row < 5; row++) {
-        if (board[row].every((cell) => cell.color === 'red')) {
-            const calledNumber = selectedNumber; 
-            const score = calculateBoardScore(board, calledNumber);
-            setScore(score);
-             console.log(`Board Score: ${score}`);
-          return true;
-        }
-        for (let col = 0; col < 5; col++) {
-          if (
-            board.every((row) => row[col].color === 'red') ||
-            board.every((row) => row[col].color === 'red')
-          ) {
-            const calledNumber = selectedNumber; 
-            const score = calculateBoardScore(board, calledNumber);
-            console.log(`Board Score: ${score}`);
-            setScore(score);
-            return true;
-          }
+        if (playerBoard[row].every(cell => numbers.includes(cell))) {
+          return i + 1;
         }
       }
-      return false;
-    };
 
-    if (!winner) {
-      if (checkWinner(player1Board)) {
-        setWinner('Player 1');
-        setGameOver(true);
-      } else if (checkWinner(player2Board)) {
-        setWinner('Player 2');
-        setGameOver(true);
-      } else if (checkWinner(player3Board)) {
-        setWinner('Player 3');
-        setGameOver(true);
+      // Check columns
+      for (let col = 0; col < 5; col++) {
+        if (playerBoard.every(row => numbers.includes(row[col]))) {
+          return i + 1;
+        }
       }
     }
-  }, [player1Board, player2Board, player3Board, winner]);
 
-  const startGame = () => {
-    setGameStarted(true);
-    setGameOver(false);
-    setWinner(null);
-    setSelectedNumber(null);
+    return null;
+  };
+
+  const calculateScore = (board, winningNumber) => {
+    const unmarkedNumbers = board.flat().filter(number => !selectedNumbers.includes(number));
+    const score = unmarkedNumbers.reduce((total, number) => total + number, 0);
+    return score * winningNumber;
   };
 
   return (
     <div className="bingo-container">
-      <h1> Kimy Bingo Game</h1>
-      {!gameStarted && !gameOver && <button className='start-btn' onClick={startGame}>Start Game</button>}
-      {selectedNumber && <h2>Selected Number: {selectedNumber}</h2>}
+      <h1>Kimy Bingo Game</h1>
+      <h2>Selected Numbers: {selectedNumbers.join(', ')}</h2>
       <div className="boards">
-        <BingoBoard board={player1Board} caption="Player 1" />
-        <BingoBoard board={player2Board} caption="Player 2" />
-        <BingoBoard board={player3Board} caption="Player 3" />
+        {playerBoardsData.map((_, index) => (
+          <BingoBoard
+            key={index}
+            board={playerBoardsData[index].map(row =>
+              row.map(number => ({
+                number,
+                color: selectedNumbers.includes(number) ? 'red' : 'black'
+              }))
+            )}
+            caption={`Player ${index + 1}`}
+          />
+        ))}
       </div>
-      {winner && <h2>{`${winner} Wins ! Congrats! `} &#x1F389;&#x1F389;<h2>Board Winner Score: {score}</h2> </h2>} 
+      {winner && <h2>{winner}</h2>}
     </div>
   );
 };
